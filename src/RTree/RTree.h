@@ -90,9 +90,17 @@ public:
   /// \param a_searchResult Search result array.  Caller should set grow size. Function will reset, not append to array.
   /// \param a_resultCallback Callback function to return result.  Callback should return 'true' to continue searching
   /// \param a_context User context to pass as parameter to a_resultCallback
+  /// \param visitedNodesNumber the number of all the nodes visited
   /// \return Returns the number of entries found
-  int Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDIMS], bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context);
+  int Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDIMS], bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
   
+    // Find k nearest neighbor of a query point
+    /// \param a_point the query point
+    /// \param a_resultCallback Callback function to return result.  Callback should return 'true' to continue searching
+    /// \param a_context User context to pass as parameter to a_resultCallback
+    /// \param visitedNodesNumber the number of all the nodes visited
+  void Search_KNN(const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
+
   /// Remove all entries from tree
   void RemoveAll();
 
@@ -355,7 +363,8 @@ protected:
   void FreeListNode(ListNode* a_listNode);
   bool Overlap(Rect* a_rectA, Rect* a_rectB);
   void ReInsert(Node* a_node, ListNode** a_listNode);
-  bool Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context);
+  bool Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
+  void Search_KNN(Node* a_node, const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
   void RemoveAllRec(Node* a_node);
   void Reset();
   void CountRec(Node* a_node, int& a_count);
@@ -526,7 +535,7 @@ void RTREE_QUAL::Remove(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMD
 
 
 RTREE_TEMPLATE
-int RTREE_QUAL::Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDIMS], bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context)
+int RTREE_QUAL::Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDIMS], bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
 {
 #ifdef _DEBUG
   for(int index=0; index<NUMDIMS; ++index)
@@ -534,6 +543,8 @@ int RTREE_QUAL::Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDI
     ASSERT(a_min[index] <= a_max[index]);
   }
 #endif //_DEBUG
+
+  visitedNodesNumber = 0;
 
   Rect rect;
   
@@ -546,11 +557,21 @@ int RTREE_QUAL::Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDI
   // NOTE: May want to return search result another way, perhaps returning the number of found elements here.
 
   int foundCount = 0;
-  Search(m_root, &rect, foundCount, a_resultCallback, a_context);
+  Search(m_root, &rect, foundCount, a_resultCallback, a_context, visitedNodesNumber);
 
   return foundCount;
 }
 
+RTREE_TEMPLATE
+void RTREE_QUAL::Search_KNN(const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
+{
+  assert(k>=1);
+
+  visitedNodesNumber = 0;
+  Search_KNN(m_root, a_point, a_resultCallback, a_context, visitedNodesNumber);
+
+  return;
+}
 
 RTREE_TEMPLATE
 int RTREE_QUAL::Count()
@@ -884,10 +905,46 @@ void RTREE_QUAL::InitRect(Rect* a_rect)
 RTREE_TEMPLATE
 bool RTREE_QUAL::InsertRectRec(Rect* a_rect, const DATATYPE& a_id, Node* a_node, Node** a_newNode, int a_level)
 {
-    ASSERT(a_rect && a_node && a_newNode){
+  ASSERT(a_rect && a_node && a_newNode);
+  ASSERT(a_level >= 0 && a_level <= a_node->m_level);
 
+  int index;
+  Branch branch;
+  Node* otherNode;
+
+  // Still above level for insertion, go down tree recursively
+  if(a_node->m_level > a_level)
+  {
+    index = PickBranch(a_rect, a_node);
+    if (!InsertRectRec(a_rect, a_id, a_node->m_branch[index].m_child, &otherNode, a_level))
+    {
+      // Child was not split
+      a_node->m_branch[index].m_rect = CombineRect(a_rect, &(a_node->m_branch[index].m_rect));
+      return false;
     }
+    else // Child was split
+    {
+      a_node->m_branch[index].m_rect = NodeCover(a_node->m_branch[index].m_child);
+      branch.m_child = otherNode;
+      branch.m_rect = NodeCover(otherNode);
+      return AddBranch(&branch, a_node, a_newNode);
+    }
+  }
+  else if(a_node->m_level == a_level) // Have reached level for insertion. Add rect, split if necessary
+  {
+    branch.m_rect = *a_rect;
+    branch.m_child = (Node*) a_id;
+    // Child field of leaves contains id of data record
+    return AddBranch(&branch, a_node, a_newNode);
+  }
+  else
+  {
+    // Should never occur
+    ASSERT(0);
+    return false;
+  }
 }
+
 
 // Insert a data rectangle into an index structure.
 // InsertRect provides for splitting the root;
@@ -899,23 +956,34 @@ bool RTREE_QUAL::InsertRectRec(Rect* a_rect, const DATATYPE& a_id, Node* a_node,
 RTREE_TEMPLATE
 bool RTREE_QUAL::InsertRect(Rect* a_rect, const DATATYPE& a_id, Node** a_root, int a_level)
 {
-    ASSERT(a_rect && a_root);
-    ASSERT(a_level >= 0 && a_level <= (*a_root)->m_level);
+  ASSERT(a_rect && a_root);
+  ASSERT(a_level >= 0 && a_level <= (*a_root)->m_level);
 #ifdef _DEBUG
-    for(int index=0; index<NUMDIMS; ++index)
-    {
-        ASSERT(a_rect->m_min[index] <= a_rect->m_max[index]);
-    }
-#endif //_DEBUG
-    Node* newRoot;
-    Node* newNode;
-    Branch branch;
+  for(int index=0; index < NUMDIMS; ++index)
+  {
+    ASSERT(a_rect->m_min[index] <= a_rect->m_max[index]);
+  }
+#endif //_DEBUG  
 
-    if(InsertRectRec(a_rect, a_id, *a_root, &newNode, a_level)){//Root split
-        newRoot = AllocNode();//Grow tree taller and new root
-        newRoot->m_level = (*a_root)->m_level + 1;
+  Node* newRoot;
+  Node* newNode;
+  Branch branch;
 
-    }
+  if(InsertRectRec(a_rect, a_id, *a_root, &newNode, a_level))  // Root split
+  {
+    newRoot = AllocNode();  // Grow tree taller and new root
+    newRoot->m_level = (*a_root)->m_level + 1;
+    branch.m_rect = NodeCover(*a_root);
+    branch.m_child = *a_root;
+    AddBranch(&branch, newRoot, NULL);
+    branch.m_rect = NodeCover(newNode);
+    branch.m_child = newNode;
+    AddBranch(&branch, newRoot, NULL);
+    *a_root = newRoot;
+    return true;
+  }
+
+  return false;
 }
 
 
@@ -1114,7 +1182,7 @@ ELEMTYPEREAL RTREE_QUAL::RectSphericalVolume(Rect* a_rect)
     sumOfSquares += halfExtent * halfExtent;
   }
 
-  radius = (ELEMTYPEREAL)sqrt(sumOfSquares);
+  radius = (ELEMTYPEREAL)sqrt(sumOfSquares);//不同维度上的半径的均方
   
   // Pow maybe slow, so test for common dims like 2,3 and just use x*x, x*x*x.
   if(NUMDIMS == 3)
@@ -1209,7 +1277,7 @@ void RTREE_QUAL::ChoosePartition(PartitionVars* a_parVars, int a_minFill)
         Rect rect1 = CombineRect(curRect, &a_parVars->m_cover[1]);
         ELEMTYPEREAL growth0 = CalcRectVolume(&rect0) - a_parVars->m_area[0];
         ELEMTYPEREAL growth1 = CalcRectVolume(&rect1) - a_parVars->m_area[1];
-        ELEMTYPEREAL diff = growth1 - growth0;
+        ELEMTYPEREAL diff = growth1 - growth0;//Note:改进，此处diff可以一次性计算所有矩形的diff，避免重复运算！！！
         if(diff >= 0)
         {
           group = 0;
@@ -1497,11 +1565,13 @@ void RTREE_QUAL::ReInsert(Node* a_node, ListNode** a_listNode)
 
 // Search in an index tree or subtree for all data retangles that overlap the argument rectangle.
 RTREE_TEMPLATE
-bool RTREE_QUAL::Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context)
+bool RTREE_QUAL::Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
 {
   ASSERT(a_node);
   ASSERT(a_node->m_level >= 0);
   ASSERT(a_rect);
+
+  visitedNodesNumber++;
 
   if(a_node->IsInternalNode()) // This is an internal node in the tree
   {
@@ -1509,7 +1579,7 @@ bool RTREE_QUAL::Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cd
     {
       if(Overlap(a_rect, &a_node->m_branch[index].m_rect))
       {
-        if(!Search(a_node->m_branch[index].m_child, a_rect, a_foundCount, a_resultCallback, a_context))
+        if(!Search(a_node->m_branch[index].m_child, a_rect, a_foundCount, a_resultCallback, a_context, visitedNodesNumber))
         {
           return false; // Don't continue searching
         }
@@ -1540,6 +1610,11 @@ bool RTREE_QUAL::Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cd
   return true; // Continue searching
 }
 
+RTREE_TEMPLATE
+void RTREE_QUAL::Search_KNN(Node* node, const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
+{
+
+}
 
 #undef RTREE_TEMPLATE
 #undef RTREE_QUAL
