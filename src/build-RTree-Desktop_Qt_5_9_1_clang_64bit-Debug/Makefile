@@ -52,10 +52,12 @@ OBJECTS_DIR   = ./
 
 SOURCES       = ../RTree/main.cpp \
 		../RTree/mainwindow.cpp \
-		../RTree/imagedatabase.cpp moc_mainwindow.cpp
+		../RTree/imagedatabase.cpp \
+		../RTree/imagedatabasetest.cpp moc_mainwindow.cpp
 OBJECTS       = main.o \
 		mainwindow.o \
 		imagedatabase.o \
+		imagedatabasetest.o \
 		moc_mainwindow.o
 DIST          = /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/spec_pre.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/qdevice.pri \
@@ -215,6 +217,7 @@ DIST          = /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/spec_
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/qt_config.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/macx-clang/qmake.conf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/spec_post.prf \
+		../RTree/.qmake.stash \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/exclusive_builds.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/mac/sdk.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/toolchain.prf \
@@ -244,9 +247,11 @@ DIST          = /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/spec_
 		../RTree/RTree.pro ../RTree/mainwindow.h \
 		../RTree/RTree.h \
 		../RTree/parameter.h \
-		../RTree/imagedatabase.h ../RTree/main.cpp \
+		../RTree/imagedatabase.h \
+		../RTree/imagedatabasetest.h ../RTree/main.cpp \
 		../RTree/mainwindow.cpp \
-		../RTree/imagedatabase.cpp
+		../RTree/imagedatabase.cpp \
+		../RTree/imagedatabasetest.cpp
 QMAKE_TARGET  = RTree
 DESTDIR       = 
 TARGET        = RTree.app/Contents/MacOS/RTree
@@ -422,6 +427,7 @@ Makefile: ../RTree/RTree.pro /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/m
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/qt_config.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/macx-clang/qmake.conf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/spec_post.prf \
+		.qmake.stash \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/exclusive_builds.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/mac/sdk.prf \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/toolchain.prf \
@@ -611,6 +617,7 @@ Makefile: ../RTree/RTree.pro /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/m
 /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/qt_config.prf:
 /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/macx-clang/qmake.conf:
 /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/spec_post.prf:
+.qmake.stash:
 /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/exclusive_builds.prf:
 /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/mac/sdk.prf:
 /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/toolchain.prf:
@@ -671,8 +678,8 @@ distdir: FORCE
 	@test -d $(DISTDIR) || mkdir -p $(DISTDIR)
 	$(COPY_FILE) --parents $(DIST) $(DISTDIR)/
 	$(COPY_FILE) --parents /Users/jiangjunguang/Qt5.9/5.9.1/clang_64/mkspecs/features/data/dummy.cpp $(DISTDIR)/
-	$(COPY_FILE) --parents ../RTree/mainwindow.h ../RTree/RTree.h ../RTree/parameter.h ../RTree/imagedatabase.h $(DISTDIR)/
-	$(COPY_FILE) --parents ../RTree/main.cpp ../RTree/mainwindow.cpp ../RTree/imagedatabase.cpp $(DISTDIR)/
+	$(COPY_FILE) --parents ../RTree/mainwindow.h ../RTree/RTree.h ../RTree/parameter.h ../RTree/imagedatabase.h ../RTree/imagedatabasetest.h $(DISTDIR)/
+	$(COPY_FILE) --parents ../RTree/main.cpp ../RTree/mainwindow.cpp ../RTree/imagedatabase.cpp ../RTree/imagedatabasetest.cpp $(DISTDIR)/
 	$(COPY_FILE) --parents ../RTree/mainwindow.ui $(DISTDIR)/
 
 
@@ -683,6 +690,7 @@ clean: compiler_clean
 
 distclean: clean 
 	-$(DEL_FILE) -r RTree.app
+	-$(DEL_FILE) .qmake.stash
 	-$(DEL_FILE) Makefile
 
 
@@ -739,14 +747,7 @@ main.o: ../RTree/main.cpp ../RTree/mainwindow.h \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtWidgets.framework/Headers/QMainWindow \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtWidgets.framework/Headers/qmainwindow.h \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtWidgets.framework/Headers/QApplication \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtWidgets.framework/Headers/qapplication.h \
-		../RTree/imagedatabase.h \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QString \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QSet \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qset.h \
-		../RTree/RTree.h \
-		../RTree/parameter.h
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtWidgets.framework/Headers/qapplication.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o main.o ../RTree/main.cpp
 
 mainwindow.o: ../RTree/mainwindow.cpp ../RTree/mainwindow.h \
@@ -758,19 +759,31 @@ mainwindow.o: ../RTree/mainwindow.cpp ../RTree/mainwindow.h \
 imagedatabase.o: ../RTree/imagedatabase.cpp ../RTree/imagedatabase.h \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QString \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qstring.h \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QSet \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qset.h \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QVector \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qvector.h \
 		../RTree/RTree.h \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QDebug \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qdebug.h \
 		../RTree/parameter.h \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QFile \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qfile.h \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QTextStream \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qtextstream.h \
 		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QStringList \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qstringlist.h \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QDebug \
-		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qdebug.h
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qstringlist.h
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o imagedatabase.o ../RTree/imagedatabase.cpp
+
+imagedatabasetest.o: ../RTree/imagedatabasetest.cpp ../RTree/imagedatabasetest.h \
+		../RTree/imagedatabase.h \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QString \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qstring.h \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QVector \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qvector.h \
+		../RTree/RTree.h \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/QDebug \
+		/Users/jiangjunguang/Qt5.9/5.9.1/clang_64/lib/QtCore.framework/Headers/qdebug.h \
+		../RTree/parameter.h
+	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o imagedatabasetest.o ../RTree/imagedatabasetest.cpp
 
 moc_mainwindow.o: moc_mainwindow.cpp 
 	$(CXX) -c $(CXXFLAGS) $(INCPATH) -o moc_mainwindow.o moc_mainwindow.cpp

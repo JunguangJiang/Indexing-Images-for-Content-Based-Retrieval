@@ -26,13 +26,15 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-    imagedatabase.cpp
+    imagedatabase.cpp \
+    imagedatabasetest.cpp
 
 HEADERS += \
         mainwindow.h \
     RTree.h \
     parameter.h \
-    imagedatabase.h
+    imagedatabase.h \
+    imagedatabasetest.h
 
 FORMS += \
         mainwindow.ui

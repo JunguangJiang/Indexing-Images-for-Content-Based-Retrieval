@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <algorithm>
+#include <queue>
 
 #define ASSERT assert // RTree uses ASSERT( condition )
 #ifndef Min
@@ -99,7 +100,7 @@ public:
     /// \param a_resultCallback Callback function to return result.  Callback should return 'true' to continue searching
     /// \param a_context User context to pass as parameter to a_resultCallback
     /// \param visitedNodesNumber the number of all the nodes visited
-  void Search_KNN(const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
+  void Search_KNN(const ELEMTYPEREAL a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
 
   /// Remove all entries from tree
   void RemoveAll();
@@ -335,6 +336,32 @@ protected:
     Rect m_coverSplit;
     ELEMTYPEREAL m_coverSplitArea;
   }; 
+
+  /// node in the queue: for knn search
+  struct QueueNode{
+      QueueNode(Branch* branch, const ELEMTYPEREAL point[], bool isNode){
+          m_branch = branch;
+          m_priority = distance(point, &branch->m_rect);
+          m_isNode = isNode;
+      }
+      bool operator == (const QueueNode& rhs){//只对空间对象进行处理
+          if(!m_isNode && !rhs.m_isNode){
+              return m_branch->m_data == rhs.m_branch->m_data;
+          }else{
+              return false;
+          }
+      }
+
+      bool m_isNode;//是否为树中结点
+      Branch* m_branch;//所在的分支
+      double m_priority;//排序优先级=到查询点的距离
+  };
+
+  struct cmp{
+      bool operator()(QueueNode a, QueueNode b){
+          return a.m_priority > b.m_priority;
+      }
+  };
  
   Node* AllocNode();
   void FreeNode(Node* a_node);
@@ -364,13 +391,14 @@ protected:
   bool Overlap(Rect* a_rectA, Rect* a_rectB);
   void ReInsert(Node* a_node, ListNode** a_listNode);
   bool Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
-  void Search_KNN(Node* a_node, const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
+  void Search_KNN(Node* a_node, const ELEMTYPEREAL a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber);
   void RemoveAllRec(Node* a_node);
   void Reset();
   void CountRec(Node* a_node, int& a_count);
 
   bool SaveRec(Node* a_node, RTFileStream& a_stream);
   bool LoadRec(Node* a_node, RTFileStream& a_stream);
+  static ELEMTYPEREAL distance(const ELEMTYPEREAL a_point[], Rect* a_rect);//the min distance from a point to a rect
   
   Node* m_root;                                    ///< Root of tree
   ELEMTYPEREAL m_unitSphereVolume;                 ///< Unit sphere constant for required number of dimensions
@@ -563,12 +591,12 @@ int RTREE_QUAL::Search(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMDI
 }
 
 RTREE_TEMPLATE
-void RTREE_QUAL::Search_KNN(const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
+void RTREE_QUAL::Search_KNN(const ELEMTYPEREAL a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
 {
   assert(k>=1);
 
   visitedNodesNumber = 0;
-  Search_KNN(m_root, a_point, a_resultCallback, a_context, visitedNodesNumber);
+  Search_KNN(m_root, a_point,k, a_resultCallback, a_context, visitedNodesNumber);
 
   return;
 }
@@ -1610,10 +1638,66 @@ bool RTREE_QUAL::Search(Node* a_node, Rect* a_rect, int& a_foundCount, bool __cd
   return true; // Continue searching
 }
 
+#include <QDebug>
 RTREE_TEMPLATE
-void RTREE_QUAL::Search_KNN(Node* node, const ELEMTYPE a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
+void RTREE_QUAL::Search_KNN(Node* node, const ELEMTYPEREAL a_point[NUMDIMS], int k, bool __cdecl a_resultCallback(DATATYPE a_data, void* a_context), void* a_context, int& visitedNodesNumber)
 {
+    std::priority_queue<QueueNode, std::vector<QueueNode>, cmp> Q;
+    Branch m_rootBranch;
+    m_rootBranch.m_child = m_root;
+    m_rootBranch.m_rect = NodeCover(m_root);
+    QueueNode rootNode(&m_rootBranch, a_point, true);
+    Q.push(rootNode);
 
+    while(!Q.empty() && k>0){
+        QueueNode element = Q.top(); Q.pop();
+        if(!element.m_isNode){//如果element对应一个空间对象，则必然为当前队列中优先级最高的对象
+            while(element == Q.top()){
+                Q.pop();
+            }
+            a_resultCallback(element.m_branch->m_data, a_context);
+            k--;
+        }
+        else if(element.m_branch->m_child->IsLeaf()){//若element所在的branch包含一个叶结点
+            visitedNodesNumber++;
+            for(int i=0; i<element.m_branch->m_child->m_count; i++){//取出叶结点中的所有空间对象
+                Branch* branch=&element.m_branch->m_child->m_branch[i];
+                QueueNode queueNode(branch, a_point, false);
+                if(queueNode.m_priority>=element.m_priority){
+                    Q.push(queueNode);
+                }
+            }
+        }
+        else{//element is a non-leaf node
+            visitedNodesNumber++;
+            for(int i=0; i<element.m_branch->m_child->m_count; i++){//取出内部结点中的所有孩子结点
+                Branch* branch=&element.m_branch->m_child->m_branch[i];
+                Q.push(QueueNode(branch, a_point, true));
+            }
+        }
+    }
+}
+
+//the min distance from a point to a rect
+RTREE_TEMPLATE
+ELEMTYPEREAL RTREE_QUAL::distance(const ELEMTYPEREAL a_point[], Rect* a_rect)
+{
+    ELEMTYPEREAL result=(ELEMTYPEREAL)(0);
+    ELEMTYPEREAL r;
+    const ELEMTYPEREAL* p=a_point;
+    ELEMTYPEREAL* s=a_rect->m_min;
+    ELEMTYPEREAL* t=a_rect->m_max;
+    for(int i=0; i<NUMDIMS; i++){
+        if(p[i]<s[i]){
+            r=s[i];
+        }else if(p[i]>t[i]){
+            r=t[i];
+        }else{
+            r=p[i];
+        }
+        result+=(p[i]-r)*(p[i]-r);
+    }
+    return result;
 }
 
 #undef RTREE_TEMPLATE
