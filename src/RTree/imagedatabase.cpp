@@ -7,11 +7,11 @@ ImageDatabase::ImageDatabase(){
 
 }
 
-void ImageDatabase::init(QString databaseFile){
+bool ImageDatabase::init(QString databaseFile){
     QFile file(databaseFile);
     if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
         qDebug() << "图片数据库载入文件"<<databaseFile<<"打开失败!";
-        return;
+        return false;
     }
 
     QTextStream in(&file);
@@ -29,6 +29,7 @@ void ImageDatabase::init(QString databaseFile){
             m_rtree.Insert(a_min, a_max, a_dataId++);//所有图片从0开始顺序编号
         }
     }
+    return true;
 }
 
 bool m_resultCallBack(int id, void* queryResult){
