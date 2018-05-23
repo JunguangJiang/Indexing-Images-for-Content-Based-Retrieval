@@ -1,4 +1,4 @@
-#ifndef RTREE_H
+﻿#ifndef RTREE_H
 #define RTREE_H
 
 // NOTE This file compiles under MSVC 6 SP5 and MSVC .Net 2003 it may not work on other compilers without modification.

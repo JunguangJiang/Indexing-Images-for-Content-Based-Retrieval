@@ -7,7 +7,8 @@ ImageDatabase::ImageDatabase(){
 
 }
 
-bool ImageDatabase::init(QString databaseFile){
+bool ImageDatabase::init(QString databaseFile)
+{
     QFile file(databaseFile);
     if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
         qDebug() << "图片数据库载入文件"<<databaseFile<<"打开失败!";
@@ -85,6 +86,56 @@ bool readNthFeature(int n, double feature[], QString databaseFile){
         qDebug() << databaseFile<<"中不存在第"<<n<<"行特征向量";
         return false;
     }
+}
+
+bool readNthImageName(int n, QString imageName, QString imageNameFile){
+    QFile file(imageNameFile);
+    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
+        qDebug() << "图片数据库载入文件"<<imageNameFile<<"打开失败!";
+        return false;
+    }
+
+    QTextStream in(&file);
+    QString line;
+    while(!in.atEnd() && n>=0){
+        line = in.readLine();
+        if(line.length()>0){
+            n--;
+        }
+    }
+    if(n==-1){
+        imageName = line;
+        return true;
+    }else{
+        qDebug() << imageNameFile<<"中不存在第"<<n<<"个图片";
+        return false;
+    }
+}
+
+bool readIdByName(int& id, QString imageName, QString imageNameFile){
+    QFile file(imageNameFile);
+    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
+        qDebug() << "图片数据库载入文件"<<imageNameFile<<"打开失败!";
+        return false;
+    }
+
+    QTextStream in(&file);
+    QString line;
+    id = 0;
+    while(!in.atEnd())
+    {
+        line = in.readLine();
+        if(line.length()!=imageName)
+        {
+            id++;
+        }
+        else
+        {
+            return true;
+        }
+    }
+    qDebug() << imageNameFile<<"中不存在名为"<<imageName<<"的图片";
+    return false;
 }
 
 double distance(double p1[], double p2[]){//欧式距离的平方

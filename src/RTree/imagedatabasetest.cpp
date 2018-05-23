@@ -1,4 +1,4 @@
-#include "imagedatabasetest.h"
+﻿#include "imagedatabasetest.h"
 #include "imagedatabase.h"
 #include "parameter.h"
 #include <QString>

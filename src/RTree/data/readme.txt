@@ -1,1 +1,0 @@
-imagelist.txt文件中存放image.zip文件中所有图片文件名，其顺序与color_feature.txt中color moment features顺序对应。

@@ -1,10 +1,11 @@
-#ifndef PARAMETER_H
+﻿#ifndef PARAMETER_H
 #define PARAMETER_H
 #include <QString>
 
 //Windows下的相对路径
 #define ImageDatabaseFile "data/color_feature.txt"
 #define ImageQuery "data/color_feature.query"
+#define ImageList "data/imagelist.txt"
 
 //（Mac下的相对路径比较奇葩，就直接用绝对路径替代了）
 //#define ImageDatabaseFile "/Users/jiangjunguang/Files/Learning/ADS/Project1/Indexing-Images-for-Content-Based-Retrieval/data/color_feature.txt"
