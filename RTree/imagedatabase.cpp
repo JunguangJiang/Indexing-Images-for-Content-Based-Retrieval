@@ -7,7 +7,7 @@ ImageDatabase::ImageDatabase(){
 
 }
 
-bool ImageDatabase::init(QString databaseFile)
+bool ImageDatabase::init(QString databaseFile,int n, int m)
 {
     QFile file(databaseFile);
     if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
@@ -18,17 +18,17 @@ bool ImageDatabase::init(QString databaseFile)
     QTextStream in(&file);
     double a_min[Dimension],a_max[Dimension];
     int a_dataId=0;
+
     while(!in.atEnd()){
         QString line = in.readLine();
-        if(line.length()>0 && line[0] == 'r'){
-            QStringList list = line.split(' ');
-            assert(list.size() == Dimension+1);
-            for(int i=0; i<Dimension; i++){
-                a_min[i] = a_max[i] =  list[i+1].toDouble();
-                //qDebug() << a_min[i];
-            }
-            m_rtree.Insert(a_min, a_max, a_dataId++);//所有图片从0开始顺序编号
+        QStringList list = line.split(' ');
+        qDebug() << list;
+        if(list.size() < Dimension)//保证读取行至少有Dimension个特征值
+            continue;
+        for(int i=0; i<Dimension; i++){
+            a_min[i] = a_max[i] =  list[i].toDouble();
         }
+        m_rtree.Insert(a_min, a_max, a_dataId++);//所有图片从0开始顺序编号
     }
     return true;
 }

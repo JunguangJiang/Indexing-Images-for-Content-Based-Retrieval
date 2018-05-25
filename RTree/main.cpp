@@ -3,8 +3,9 @@
 //#include "imagedatabasetest.h"
 int main(int argc, char *argv[])
 {
-    //ImageDatabaseTest test;
-    //test.knnQueryTest();
+//    ImageDatabaseTest test;
+//    test.knnQueryTest();
+//    return 0;
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
