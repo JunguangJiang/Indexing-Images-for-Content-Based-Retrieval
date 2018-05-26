@@ -15,6 +15,7 @@ public:
     QVector<int> rangeQuery(double a_min[], double a_max[]);//范围查询
     QVector<int> exactQuery(double a_point[]);//精确查询
     QVector<int> knnQuery(double p[], int k);//k最近邻查询，返回距离p最近的k个点
+    double knnAccuracy(double p[], int k, QString label);//knn查询的准确度计算，label是对应的标签
     int getSplitNodesCount()const{return m_rtree.m_splitNodesCount;}//返回结点分裂总次数
     double distance(double p1[], double p2[]){return m_rtree.distance(p1,p2);}
 private:
@@ -25,5 +26,6 @@ private:
 bool readNthFeature(int n, double feature[], QString databaseFile);//读入第n行的特征向量feature（用于调试）
 bool readNthImageName(int n, QString& imageName, QString imageNameFile);//读入第n行的图片名
 bool readIdByName(int& id, QString imageName, QString imageNameFile);//根据图片名得到ID
-
+double distance(double p1[], double p2[]);//两个点之间的距离
+QString getLabel(QString imageName);//由一张图片的名字返回其所对应的类别
 #endif // IMAGEDATABASE_H

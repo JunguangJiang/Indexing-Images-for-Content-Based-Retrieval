@@ -62,6 +62,19 @@ QVector<int> ImageDatabase::knnQuery(double p[], int k){
     return m_queryResult;
 }
 
+double ImageDatabase::knnAccuracy(double p[], int k, QString label){
+    knnQuery(p, k);
+    int correctTimes=0;
+    foreach (int id, m_queryResult) {
+        QString imageName;
+        readNthImageName(id, imageName, ImageList);
+        if(getLabel(imageName) == label){
+            correctTimes++;
+        }
+    }
+    return double(correctTimes)/double(k);
+}
+
 bool readNthFeature(int n, double feature[], QString databaseFile){
     QFile file(databaseFile);
     if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
@@ -138,3 +151,11 @@ bool readIdByName(int& id, QString imageName, QString imageNameFile){
     return false;
 }
 
+QString getLabel(QString imageName){
+    QStringList list = imageName.split('_');
+    return list[0];
+}
+
+double distance(double p1[], double p2[]){
+    return RTree_::distance(p1,p2);
+}//两个点之间的距离

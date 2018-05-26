@@ -61,3 +61,10 @@ void RTreeSplitNodesCountTest(){
     out << MaxNodeNumber << "," << LineNumber << "," << m_database.getSplitNodesCount() << endl;
     resultFile.close();
 }
+
+void RTreeDistanceTypeTest(){
+    ImageDatabase m_database;
+    if(!m_database.init(ImageDatabaseFile))return;//初始化数据库
+    double p[8]={1553, 4367, 6897, 2239, 3278, 2712, 3094, 3553};
+    qDebug() << "KNN查询准确度为" << m_database.knnAccuracy(p,10,"n03877845");
+}

@@ -6,7 +6,7 @@ const int Dimension = 8;//维度
 const int LineNumber = 2000;//插入数据的个数
 
 const int DiskAccessQueryNumber = 1000;//磁盘访问查询个数
-const int DistanceType = 4;
+const int DistanceType = 2;
 //DistanceType=1时，采用L1距离；
 //DistanceType=2时，采用L2距离；
 //DistanceType=3时，采用L∞；

@@ -7,8 +7,9 @@ int main(int argc, char *argv[])
 //    ImageDatabaseTest test;
 //    test.knnQueryTest();
 //    return 0;
-    RTreeDiskAccessTest();
+    //RTreeDiskAccessTest();
     //RTreeSplitNodesCountTest();
+    RTreeDistanceTypeTest();
     QApplication a(argc, argv);
     MainWindow w;
     w.show();
