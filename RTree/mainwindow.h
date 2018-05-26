@@ -6,6 +6,7 @@
 #include<QDir>
 #include<QListWidget>
 #include"imagedatabase.h"
+#include<QFileDialog>
 
 namespace Ui {
 class MainWindow;
@@ -20,13 +21,18 @@ public:
     ~MainWindow();
 
 private slots:
-    void on_loadImg_clicked();
     void selectImg(QListWidgetItem*);
+    void selectLocal(QString);
     void on_Search_clicked();
+
+    void on_pushButton_clicked();
+
+    void on_selectLocal_clicked();
 
 private:
     Ui::MainWindow *ui;
     QString selected;
+    QFileDialog *fileDialog;
     int selectedID;
     void getAllImg();
     ImageDatabase m_database;

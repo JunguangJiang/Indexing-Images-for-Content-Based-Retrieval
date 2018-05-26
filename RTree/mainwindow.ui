@@ -14,70 +14,31 @@
    <string>MainWindow</string>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QLabel" name="label">
-    <property name="geometry">
-     <rect>
-      <x>300</x>
-      <y>50</y>
-      <width>72</width>
-      <height>15</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Preview</string>
-    </property>
-   </widget>
-   <widget class="QLabel" name="loadedImg">
-    <property name="geometry">
-     <rect>
-      <x>400</x>
-      <y>50</y>
-      <width>261</width>
-      <height>221</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string/>
-    </property>
-   </widget>
    <widget class="QLineEdit" name="lineEdit">
     <property name="geometry">
      <rect>
-      <x>400</x>
-      <y>10</y>
-      <width>161</width>
+      <x>30</x>
+      <y>50</y>
+      <width>551</width>
       <height>21</height>
      </rect>
-    </property>
-   </widget>
-   <widget class="QPushButton" name="loadImg">
-    <property name="geometry">
-     <rect>
-      <x>290</x>
-      <y>10</y>
-      <width>93</width>
-      <height>28</height>
-     </rect>
-    </property>
-    <property name="text">
-     <string>Load image</string>
     </property>
    </widget>
    <widget class="QListWidget" name="listWidget">
     <property name="geometry">
      <rect>
-      <x>10</x>
-      <y>10</y>
-      <width>256</width>
-      <height>611</height>
+      <x>20</x>
+      <y>90</y>
+      <width>681</width>
+      <height>531</height>
      </rect>
     </property>
    </widget>
    <widget class="QPushButton" name="Search">
     <property name="geometry">
      <rect>
-      <x>300</x>
-      <y>270</y>
+      <x>600</x>
+      <y>40</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -86,14 +47,30 @@
      <string>Search</string>
     </property>
    </widget>
-   <widget class="QListWidget" name="searchResult">
+   <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>390</x>
-      <y>300</y>
-      <width>281</width>
-      <height>321</height>
+      <x>30</x>
+      <y>10</y>
+      <width>141</width>
+      <height>28</height>
      </rect>
+    </property>
+    <property name="text">
+     <string>Load database</string>
+    </property>
+   </widget>
+   <widget class="QPushButton" name="selectLocal">
+    <property name="geometry">
+     <rect>
+      <x>190</x>
+      <y>10</y>
+      <width>141</width>
+      <height>28</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Select local</string>
     </property>
    </widget>
   </widget>

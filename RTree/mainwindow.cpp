@@ -6,8 +6,13 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    getAllImg();//读入所有图片
-    connect(ui->listWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(selectImg(QListWidgetItem*)));
+    ui->listWidget->setFlow(QListView::LeftToRight);
+    ui->listWidget->setViewMode  (QListWidget::IconMode);
+    ui->listWidget->setIconSize  (QSize(200,200));
+    ui->listWidget->setGridSize  (QSize(300,300));
+    ui->listWidget->setSpacing(10);
+    ui->listWidget->setResizeMode(QListWidget::Adjust);
+    connect(ui->listWidget, SIGNAL(itemClicked(QListWidgetItem*)), this, SLOT(selectImg(QListWidgetItem*)));    
     m_database.init(ImageDatabaseFile);//初始化图片数据库
 }
 
@@ -24,6 +29,7 @@ void MainWindow::getAllImg()
         return ;
     }
 
+    ui->listWidget->clear();
     QTextStream in(&file);
     int id = 0;
     while(!in.atEnd())
@@ -39,6 +45,7 @@ void MainWindow::getAllImg()
         }
         //显示图片名
         QListWidgetItem *item = new QListWidgetItem;
+        //item->setIcon(QPixmap("image/"+line));//显示图片
         item->setText(QString::number(id,10)+"."+line);//显示形式：id.图片名
         ui->listWidget->addItem(item);
         id++;
@@ -51,16 +58,19 @@ void MainWindow::selectImg(QListWidgetItem *toAdd)
     QStringList list = toAdd->text().split('.');
     selected = "image/" + list[1];
     selectedID = list[0].toInt();
-    QPixmap pix(selected);
-    ui->loadedImg->setPixmap(pix.scaled(ui->loadedImg->size(),Qt::KeepAspectRatio,Qt::SmoothTransformation));
+    ui->lineEdit->setText(list[1]+".JPEG");
 }
 
-void MainWindow::on_loadImg_clicked()
+void MainWindow::selectLocal(QString got)
 {
-    selected = "image/" + ui->lineEdit->text();
-    selectedID = readIdByName(selectedID,ui->lineEdit->text(),ImageList);
-    QPixmap pix(selected);
-    ui->loadedImg->setPixmap(pix.scaled(ui->loadedImg->size(),Qt::KeepAspectRatio,Qt::SmoothTransformation));
+    //选中并显示图片
+    selected = got;
+    ui->lineEdit->setText(got);
+    ui->listWidget->clear();
+    QListWidgetItem *item = new QListWidgetItem;
+    item->setIcon(QPixmap(got).scaled(QSize(200,200),Qt::KeepAspectRatio,Qt::SmoothTransformation));//显示图片
+    item->setText(got);
+    ui->listWidget->addItem(item);
 }
 
 void MainWindow::on_Search_clicked()
@@ -68,23 +78,40 @@ void MainWindow::on_Search_clicked()
     //double p[Dimension];
     //readNthFeature(selectedID, p, ImageDatabaseFile);//从文件中读出id所对应的特征向量
 
+    ui->listWidget->clear();
     double p[9]={3096, 1755, 5025, 2387, 1110, 2148, 2511, 1428, 2303};//测试代码
     QVector<int> queryResult = m_database.knnQuery(p, 10);//返回knn查询结果，按照相关性从大到小排序，queryResult中的每个元素对应一个整数编号id
     double feature[Dimension];
     QString name;
 
-    ui->searchResult->setViewMode  (QListWidget::IconMode);
-    ui->searchResult->setIconSize  (QSize(200,200));
-    ui->searchResult->setResizeMode(QListWidget::Adjust);
     foreach (int id, queryResult)
     {
         readNthFeature(id, feature, ImageDatabaseFile);//从文件中读出id所对应的特征向量
         readNthImageName(id,name,ImageList);//从文件中读出id所对应的图片名
 
         QListWidgetItem *item = new QListWidgetItem;
-        item->setIcon(QPixmap("image/"+name));//显示图片
+        item->setIcon(QPixmap("image/"+name).scaled(QSize(200,200),Qt::KeepAspectRatio,Qt::SmoothTransformation));//显示图片
         item->setText("Distance to the query point:"+QString::number(distance(p, feature)));
-        ui->searchResult->addItem(item);
+        ui->listWidget->addItem(item);
         qDebug()<<"Hit:编号="<<id<<"特征向量="<<std::vector<double>(feature, feature+Dimension) << "与查询点的距离平方为："<<distance(p, feature);
     }
+}
+
+void MainWindow::on_pushButton_clicked()
+{
+    getAllImg();//读入所有图片
+}
+
+void MainWindow::on_selectLocal_clicked()
+{
+    //定义文件对话框类
+    fileDialog = new QFileDialog();
+    connect(fileDialog, SIGNAL(fileSelected(QString)), this, SLOT(selectLocal(QString)));
+    fileDialog->show();
+    //定义文件对话框标题
+    fileDialog->setWindowTitle(tr("Open image"));
+    //设置默认文件路径
+    fileDialog->setDirectory(".");
+    //设置文件过滤器
+    fileDialog->setNameFilter(tr("Images(*.png *.jpg *.jpeg *.bmp *.JPEG)"));
 }
