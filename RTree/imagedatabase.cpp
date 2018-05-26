@@ -18,18 +18,17 @@ bool ImageDatabase::init(QString databaseFile)
     QTextStream in(&file);
     double a_min[Dimension],a_max[Dimension];
     int a_dataId=0;
+    in.readLine(); in.readLine();//舍弃前两行
     while(!in.atEnd()){
         QString line = in.readLine();
-        if(line.length()>0 && line[0] == 'r'){
-            QStringList list = line.split(' ');
-            assert(list.size() == Dimension+1);
-            for(int i=0; i<Dimension; i++){
-                a_min[i] = a_max[i] =  list[i+1].toDouble();
-                //qDebug() << a_min[i];
-            }
-            m_rtree.Insert(a_min, a_max, a_dataId++);//所有图片从0开始顺序编号
+        QStringList list = line.split(' ');
+        assert(list.size() == Dimension);
+        for(int i=0; i<Dimension; i++){
+            a_min[i] = a_max[i] =  list[i].toDouble();
         }
+        m_rtree.Insert(a_min, a_max, a_dataId++);//所有图片从0开始顺序编号
     }
+    file.close();
     return true;
 }
 
@@ -40,11 +39,14 @@ bool m_resultCallBack(int id, void* queryResult){
 }
 
 QVector<int> ImageDatabase::rangeQuery(double a_min[], double a_max[]){//范围查询
-    int found_count=0;
-    int visitedNodesNumber=0;
+    int visistedNodesNumber=0;
+    return rangeQuery(a_min, a_max, visistedNodesNumber);
+}
+
+QVector<int> ImageDatabase::rangeQuery(double a_min[], double a_max[], int& visitedNodesNumber){//范围查询
     m_queryResult.clear();
     m_rtree.Search(a_min, a_max, &m_resultCallBack, (void*)&m_queryResult, visitedNodesNumber);
-    qDebug() << "总共访问了"<<visitedNodesNumber<<"个结点";
+    //qDebug() << "总共访问了"<<visitedNodesNumber<<"个结点";
     return m_queryResult;
 }
 
@@ -69,17 +71,16 @@ bool readNthFeature(int n, double feature[], QString databaseFile){
 
     QTextStream in(&file);
     QString line;
+    in.readLine(); in.readLine();//舍弃前两行
     while(!in.atEnd() && n>=0){
         line = in.readLine();
-        if(line.length()>0 && line[0] == 'r'){
-            n--;
-        }
+        n--;
     }
     if(n==-1){
         QStringList list = line.split(' ');
-        assert(list.size() == Dimension+1);
+        assert(list.size() == Dimension);
         for(int i=0; i<Dimension; i++){
-            feature[i] = list[i+1].toDouble();
+            feature[i] = list[i].toDouble();
         }
         return true;
     }else{
@@ -97,11 +98,10 @@ bool readNthImageName(int n, QString& imageName, QString imageNameFile){
 
     QTextStream in(&file);
     QString line;
+    in.readLine(); in.readLine();//舍弃前两行
     while(!in.atEnd() && n>=0){
         line = in.readLine();
-        if(line.length()>0){
-            n--;
-        }
+        n--;
     }
     if(n==-1){
         imageName = line;
@@ -138,10 +138,3 @@ bool readIdByName(int& id, QString imageName, QString imageNameFile){
     return false;
 }
 
-double distance(double p1[], double p2[]){//欧式距离的平方
-    double ret=0;
-    for(int i=0; i<Dimension; i++){
-        ret+=(p1[i]-p2[i])*(p1[i]-p2[i]);
-    }
-    return ret;
-}

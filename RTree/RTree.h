@@ -23,8 +23,8 @@
 // RTree.h
 //
 
-#define RTREE_TEMPLATE template<class DATATYPE, class ELEMTYPE, int NUMDIMS, class ELEMTYPEREAL, int TMAXNODES, int TMINNODES>
-#define RTREE_QUAL RTree<DATATYPE, ELEMTYPE, NUMDIMS, ELEMTYPEREAL, TMAXNODES, TMINNODES>
+#define RTREE_TEMPLATE template<class DATATYPE, class ELEMTYPE, int NUMDIMS, class ELEMTYPEREAL, int TMAXNODES, int TMINNODES, int DISTANCETYPE>
+#define RTREE_QUAL RTree<DATATYPE, ELEMTYPE, NUMDIMS, ELEMTYPEREAL, TMAXNODES, TMINNODES, DISTANCETYPE>
 
 #define RTREE_DONT_USE_MEMPOOLS // This version does not contain a fixed memory allocator, fill in lines with EXAMPLE to implement one.
 #define RTREE_USE_SPHERICAL_VOLUME // Better split classification, may be slower on some systems
@@ -50,7 +50,7 @@ class RTFileStream;  // File I/O helper class, look below for implementation and
 ///        array similar to MFC CArray or STL Vector for returning search query result.
 ///
 template<class DATATYPE, class ELEMTYPE, int NUMDIMS, 
-         class ELEMTYPEREAL = ELEMTYPE, int TMAXNODES = 8, int TMINNODES = TMAXNODES / 2>
+         class ELEMTYPEREAL = ELEMTYPE, int TMAXNODES = 8, int TMINNODES = TMAXNODES / 2, int DISTANCETYPE=2>
 class RTree
 {
 protected: 
@@ -72,7 +72,7 @@ public:
 
   RTree();
   virtual ~RTree();
-  
+  int m_splitNodesCount;//节点分裂次数
   /// Insert entry
   /// \param a_min Min of bounding rect
   /// \param a_max Max of bounding rect
@@ -398,10 +398,11 @@ protected:
 
   bool SaveRec(Node* a_node, RTFileStream& a_stream);
   bool LoadRec(Node* a_node, RTFileStream& a_stream);
-  static ELEMTYPEREAL distance(const ELEMTYPEREAL a_point[], Rect* a_rect);//the min distance from a point to a rect
-  
   Node* m_root;                                    ///< Root of tree
   ELEMTYPEREAL m_unitSphereVolume;                 ///< Unit sphere constant for required number of dimensions
+public:
+  static ELEMTYPEREAL distance(const ELEMTYPEREAL a_point[], const ELEMTYPEREAL b_point[]);//the distance between two points
+  static ELEMTYPEREAL distance(const ELEMTYPEREAL a_point[], Rect* a_rect);//the min distance from a point to a rect
 };
 
 
@@ -508,6 +509,7 @@ RTREE_QUAL::RTree()
   m_root = AllocNode();
   m_root->m_level = 0;
   m_unitSphereVolume = (ELEMTYPEREAL)UNIT_SPHERE_VOLUMES[NUMDIMS];
+  m_splitNodesCount = 0;
 }
 
 
@@ -535,7 +537,7 @@ void RTREE_QUAL::Insert(const ELEMTYPE a_min[NUMDIMS], const ELEMTYPE a_max[NUMD
     rect.m_min[axis] = a_min[axis];
     rect.m_max[axis] = a_max[axis];
   }
-  
+
   InsertRect(&rect, a_dataId, &m_root, 0);
 }
 
@@ -1154,7 +1156,7 @@ void RTREE_QUAL::SplitNode(Node* a_node, Branch* a_branch, Node** a_newNode)
 {
   ASSERT(a_node);
   ASSERT(a_branch);
-
+  m_splitNodesCount++;
   // Could just use local here, but member or external is faster since it is reused
   PartitionVars localVars;
   PartitionVars* parVars = &localVars;
@@ -1682,23 +1684,59 @@ void RTREE_QUAL::Search_KNN(Node* node, const ELEMTYPEREAL a_point[NUMDIMS], int
 RTREE_TEMPLATE
 ELEMTYPEREAL RTREE_QUAL::distance(const ELEMTYPEREAL a_point[], Rect* a_rect)
 {
-    ELEMTYPEREAL result=(ELEMTYPEREAL)(0);
-    ELEMTYPEREAL r;
+    ELEMTYPEREAL r[NUMDIMS];
     const ELEMTYPEREAL* p=a_point;
     ELEMTYPEREAL* s=a_rect->m_min;
     ELEMTYPEREAL* t=a_rect->m_max;
+
     for(int i=0; i<NUMDIMS; i++){
         if(p[i]<s[i]){
-            r=s[i];
+            r[i]=s[i];
         }else if(p[i]>t[i]){
-            r=t[i];
+            r[i]=t[i];
         }else{
-            r=p[i];
+            r[i]=p[i];
         }
-        result+=(p[i]-r)*(p[i]-r);
+    }
+    return distance(p,r);
+}
+
+//the distance between two points
+RTREE_TEMPLATE
+ELEMTYPEREAL RTREE_QUAL::distance(const ELEMTYPEREAL a_point[], const ELEMTYPEREAL b_point[])
+{
+    ELEMTYPEREAL result=(ELEMTYPEREAL)(0);
+    ELEMTYPEREAL A=0, B=0;
+    switch (DISTANCETYPE) {
+    case 1://采用L1距离
+        for(int i=0; i<NUMDIMS; i++){
+            result += fabs(a_point[i]-b_point[i]);
+        }
+        break;
+    case 2://采用L2距离
+        for(int i=0; i<NUMDIMS; i++){
+            result+=(a_point[i]-b_point[i])*(a_point[i]-b_point[i]);
+        }
+        result = sqrt(result);
+    case 3://采用L∞
+        for(int i=0; i<NUMDIMS; i++){
+            result = std::max(result, fabs(a_point[i]-b_point[i]));
+        }
+        break;
+    case 4://采用余弦相似度
+        for(int i=0; i<NUMDIMS; i++){
+            A += a_point[i] * a_point[i];
+            B += b_point[i] * b_point[i];
+            result += a_point[i] * b_point[i];
+        }
+        result = 1.0-result/sqrt(A)/sqrt(B);
+        break;
+    default:
+        break;
     }
     return result;
 }
+
 
 #undef RTREE_TEMPLATE
 #undef RTREE_QUAL

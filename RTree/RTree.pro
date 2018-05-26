@@ -27,14 +27,16 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     imagedatabase.cpp \
-    imagedatabasetest.cpp
+    imagedatabasetest.cpp \
+    performancetest.cpp
 
 HEADERS += \
         mainwindow.h \
     RTree.h \
     parameter.h \
     imagedatabase.h \
-    imagedatabasetest.h
+    imagedatabasetest.h \
+    performancetest.h
 
 FORMS += \
         mainwindow.ui
