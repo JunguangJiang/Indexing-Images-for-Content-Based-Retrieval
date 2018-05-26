@@ -1,4 +1,4 @@
-#ifndef IMAGEDATABASE_H
+﻿#ifndef IMAGEDATABASE_H
 #define IMAGEDATABASE_H
 
 #include <QString>
@@ -23,7 +23,7 @@ private:
 };
 
 bool readNthFeature(int n, double feature[], QString databaseFile);//读入第n行的特征向量feature（用于调试）
-bool readNthImageName(int n, QString imageName, QString imageNameFile);//读入第n行的图片名
+bool readNthImageName(int n, QString& imageName, QString imageNameFile);//读入第n行的图片名
 bool readIdByName(int& id, QString imageName, QString imageNameFile);//根据图片名得到ID
 
 #endif // IMAGEDATABASE_H

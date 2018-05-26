@@ -40,3 +40,5 @@ HEADERS += \
 
 FORMS += \
         mainwindow.ui
+
+UI_DIR=./UI

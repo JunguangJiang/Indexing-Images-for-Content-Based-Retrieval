@@ -1,4 +1,4 @@
-#include "imagedatabase.h"
+﻿#include "imagedatabase.h"
 #include <QFile>
 #include <QTextStream>
 #include <QStringList>
@@ -89,7 +89,7 @@ bool readNthFeature(int n, double feature[], QString databaseFile){
     }
 }
 
-bool readNthImageName(int n, QString imageName, QString imageNameFile){
+bool readNthImageName(int n, QString& imageName, QString imageNameFile){
     QFile file(imageNameFile);
     if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
         qDebug() << "图片数据库载入文件"<<imageNameFile<<"打开失败!";
