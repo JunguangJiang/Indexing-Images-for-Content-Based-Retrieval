@@ -16,6 +16,6 @@ void ImageDatabaseTest::knnQueryTest(){
     double feature[Dimension];
     foreach (int id, queryResult) {
         readNthFeature(id, feature, ImageDatabaseFile);//从文件中读出id所对应的特征向量
-        qDebug()<<"Hit:编号="<<id<<"特征向量="<<std::vector<double>(feature, feature+Dimension) << "与查询点的距离平方为："<<distance(p, feature);
+        qDebug()<<"Hit:编号="<<id<<"特征向量="<<std::vector<double>(feature, feature+Dimension) << "与查询点的距离平方为："<<m_database.distance(p, feature);
     }
 }

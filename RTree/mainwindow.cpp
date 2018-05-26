@@ -83,8 +83,8 @@ void MainWindow::on_Search_clicked()
 
         QListWidgetItem *item = new QListWidgetItem;
         item->setIcon(QPixmap("image/"+name));//显示图片
-        item->setText("Distance to the query point:"+QString::number(distance(p, feature)));
+        item->setText("Distance to the query point:"+QString::number(m_database.distance(p, feature)));
         ui->searchResult->addItem(item);
-        qDebug()<<"Hit:编号="<<id<<"特征向量="<<std::vector<double>(feature, feature+Dimension) << "与查询点的距离平方为："<<distance(p, feature);
+        qDebug()<<"Hit:编号="<<id<<"特征向量="<<std::vector<double>(feature, feature+Dimension) << "与查询点的距离平方为："<<m_database.distance(p, feature);
     }
 }
