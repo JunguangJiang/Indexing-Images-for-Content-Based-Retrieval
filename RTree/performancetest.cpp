@@ -62,9 +62,41 @@ void RTreeSplitNodesCountTest(){
     resultFile.close();
 }
 
-void RTreeDistanceTypeTest(){
+void RTreeDistanceTypeTest(int k){
     ImageDatabase m_database;
     if(!m_database.init(ImageDatabaseFile))return;//初始化数据库
-    double p[8]={1553, 4367, 6897, 2239, 3278, 2712, 3094, 3553};
-    qDebug() << "KNN查询准确度为" << m_database.knnAccuracy(p,10,"n03877845");
+    double averageScore = 0.0;
+
+    double p[Dimension];
+    QFile file(DistanceTypeTestQueryFile);
+    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
+        qDebug() << "实验内容4.3：knn查询文件"<<DistanceTypeTestQueryFile<<"打开失败!";
+        return;
+    }
+    QTextStream in(&file);
+    in.readLine(); in.readLine();//舍弃前两行
+    int n=0;
+    while(!in.atEnd()){
+        QString line = in.readLine();
+        QStringList list = line.split(' ');
+        assert(list.size() == Dimension);
+        for(int i=0; i<Dimension; i++){
+            p[i] = list[i].toDouble();
+        }
+        QString imageName; readNthImageName(k, imageName, DistanceTypeTestImageList);
+        QString label = getLabel(imageName);
+        averageScore += m_database.knnAccuracy(p, k, label);
+        n++;
+    }
+    file.close();
+    averageScore /= double(n);
+
+    QFile resultFile(DistanceTypeResultFile);
+    if(!resultFile.open(QIODevice::WriteOnly|QIODevice::Text|QIODevice::Append)){
+        qDebug() << "实验内容4.3：不同相似度函数对查询准确度影响的结果文件" << DistanceTypeResultFile<<"打开失败!";
+        return;
+    }
+    QTextStream out(&resultFile);
+    out << DistanceType << "," << k << "," << averageScore << endl;
+    resultFile.close();
 }

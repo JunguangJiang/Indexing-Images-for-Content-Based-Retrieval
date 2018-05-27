@@ -58,7 +58,7 @@ QVector<int> ImageDatabase::knnQuery(double p[], int k){
     int visitedNodesNumber=0;
     m_queryResult.clear();
     m_rtree.Search_KNN(p, k, &m_resultCallBack, (void*)&m_queryResult, visitedNodesNumber);
-    qDebug() << "总共访问了"<<visitedNodesNumber<<"个结点";
+    //qDebug() << "总共访问了"<<visitedNodesNumber<<"个结点";
     return m_queryResult;
 }
 
@@ -85,11 +85,11 @@ bool readNthFeature(int n, double feature[], QString databaseFile){
     QTextStream in(&file);
     QString line;
     in.readLine(); in.readLine();//舍弃前两行
-    while(!in.atEnd() && n>=0){
+    while(!in.atEnd() && n>0){
         line = in.readLine();
         n--;
     }
-    if(n==-1){
+    if(n==0){
         QStringList list = line.split(' ');
         assert(list.size() == Dimension);
         for(int i=0; i<Dimension; i++){
@@ -112,11 +112,11 @@ bool readNthImageName(int n, QString& imageName, QString imageNameFile){
     QTextStream in(&file);
     QString line;
     in.readLine(); in.readLine();//舍弃前两行
-    while(!in.atEnd() && n>=0){
+    while(!in.atEnd() && n>0){
         line = in.readLine();
         n--;
     }
-    if(n==-1){
+    if(n==0){
         imageName = line;
         return true;
     }else{

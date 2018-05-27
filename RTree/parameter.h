@@ -3,18 +3,27 @@
 #include <QString>
 
 const int Dimension = 8;//维度
-const int LineNumber = 2000;//插入数据的个数
+const int LineNumber = 5000;//插入数据的个数
 
+//实验内容4.1
 const int DiskAccessQueryNumber = 1000;//磁盘访问查询个数
+const int MaxNodeNumber = 16;
+const int MinNodeNumber = 8;
+
+//struct Data{
+//    int id;
+//    QString label;
+//};
+
+#define RTree_ RTree<int, double, Dimension, double, MaxNodeNumber, MinNodeNumber, DistanceType>//R树的非模板类，每个结点中最多有16个子结点，最少8个子节点,采用L2距离
+
+//实验内容4.3
+const int DistanceTypeTestQueryNumber = 1000;//不同距离函数性能测试时的查询个数
 const int DistanceType = 2;
 //DistanceType=1时，采用L1距离；
 //DistanceType=2时，采用L2距离；
 //DistanceType=3时，采用L∞；
 //DistanceType=4时，采用余弦相似度
-
-const int MaxNodeNumber = 16;
-const int MinNodeNumber = 8;
-#define RTree_ RTree<int, double, Dimension, double, MaxNodeNumber, MinNodeNumber, DistanceType>//R树的非模板类，每个结点中最多有16个子结点，最少8个子节点,采用L2距离
 
 //Windows下的相对路径
 const QString ImageDatabaseFile = ("data/"+QString::number(Dimension)+"_"+QString::number(LineNumber)+".txt");//特征向量文件
@@ -22,6 +31,11 @@ const QString ImageList = "data/image_"+QString::number(LineNumber)+".txt";//载
 
 const QString DiskAccessQueryFile = "data/range_query_"+QString::number(Dimension)+"_"+QString::number(DiskAccessQueryNumber)+".txt";//实验内容1中进行范围查询的查询输入文件
 const QString DiskAccessResultFile = "result/range_result.txt";//实验内容1中范围查询的结果文件
-const QString SplitNodesCountFile = "result/split_nodes_count_result.txt";//实验4中结点分裂次数影响因素的结果文件
+
+const QString SplitNodesCountFile = "result/split_nodes_count_result.txt";//实验4.1中结点分裂次数影响因素的结果文件
+
+const QString DistanceTypeTestQueryFile = "data/"+QString::number(Dimension)+"_"+QString::number(DistanceTypeTestQueryNumber)+".txt";//实验内容4.3中knn查询输入文件
+const QString DistanceTypeTestImageList = "data/image_"+QString::number(DistanceTypeTestQueryNumber)+".txt";//实验内容4.3中knn查询输入对应的图片名文件
+const QString DistanceTypeResultFile = "result/distance_type_result.txt";//实验内容4.3结果文件
 
 #endif // PARAMETER_H
