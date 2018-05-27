@@ -79,13 +79,11 @@ void RTreeDistanceTypeTest(int k){
     while(!in.atEnd()){
         QString line = in.readLine();
         QStringList list = line.split(' ');
-        assert(list.size() == Dimension);
+        assert(list.size() == Dimension+1);
         for(int i=0; i<Dimension; i++){
             p[i] = list[i].toDouble();
         }
-        QString imageName; readNthImageName(k, imageName, DistanceTypeTestImageList);
-        QString label = getLabel(imageName);
-        averageScore += m_database.knnAccuracy(p, k, label);
+        averageScore += m_database.knnAccuracy(p, k, list[Dimension]);
         n++;
     }
     file.close();

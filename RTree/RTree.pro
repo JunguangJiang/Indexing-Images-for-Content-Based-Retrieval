@@ -27,7 +27,6 @@ SOURCES += \
         main.cpp \
         mainwindow.cpp \
     imagedatabase.cpp \
-    imagedatabasetest.cpp \
     performancetest.cpp
 
 HEADERS += \
@@ -35,7 +34,6 @@ HEADERS += \
     RTree.h \
     parameter.h \
     imagedatabase.h \
-    imagedatabasetest.h \
     performancetest.h
 
 FORMS += \

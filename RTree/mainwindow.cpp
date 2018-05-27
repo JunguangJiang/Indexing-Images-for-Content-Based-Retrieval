@@ -86,8 +86,8 @@ void MainWindow::on_Search_clicked()
 
     foreach (int id, queryResult)
     {
-        readNthFeature(id, feature, ImageDatabaseFile);//从文件中读出id所对应的特征向量
-        readNthImageName(id,name,ImageList);//从文件中读出id所对应的图片名
+//        readNthFeature(id, feature, ImageDatabaseFile);//从文件中读出id所对应的特征向量
+//        readNthImageName(id,name,ImageList);//从文件中读出id所对应的图片名
 
         QListWidgetItem *item = new QListWidgetItem;
         item->setIcon(QPixmap("image/"+name).scaled(QSize(200,200),Qt::KeepAspectRatio,Qt::SmoothTransformation));//显示图片

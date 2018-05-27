@@ -22,10 +22,11 @@ bool ImageDatabase::init(QString databaseFile)
     while(!in.atEnd()){
         QString line = in.readLine();
         QStringList list = line.split(' ');
-        assert(list.size() == Dimension);
+        assert(list.size() == Dimension+1);
         for(int i=0; i<Dimension; i++){
             a_min[i] = a_max[i] =  list[i].toDouble();
         }
+        m_imageLabel.push_back(list[Dimension]);
         m_rtree.Insert(a_min, a_max, a_dataId++);//所有图片从0开始顺序编号
     }
     file.close();
@@ -66,94 +67,11 @@ double ImageDatabase::knnAccuracy(double p[], int k, QString label){
     knnQuery(p, k);
     int correctTimes=0;
     foreach (int id, m_queryResult) {
-        QString imageName;
-        readNthImageName(id, imageName, ImageList);
-        if(getLabel(imageName) == label){
+        if(getLabel(id) == label){
             correctTimes++;
         }
     }
     return double(correctTimes)/double(k);
-}
-
-bool readNthFeature(int n, double feature[], QString databaseFile){
-    QFile file(databaseFile);
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
-        qDebug() << "图片数据库载入文件"<<databaseFile<<"打开失败!";
-        return false;
-    }
-
-    QTextStream in(&file);
-    QString line;
-    in.readLine(); in.readLine();//舍弃前两行
-    while(!in.atEnd() && n>0){
-        line = in.readLine();
-        n--;
-    }
-    if(n==0){
-        QStringList list = line.split(' ');
-        assert(list.size() == Dimension);
-        for(int i=0; i<Dimension; i++){
-            feature[i] = list[i].toDouble();
-        }
-        return true;
-    }else{
-        qDebug() << databaseFile<<"中不存在第"<<n<<"行特征向量";
-        return false;
-    }
-}
-
-bool readNthImageName(int n, QString& imageName, QString imageNameFile){
-    QFile file(imageNameFile);
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
-        qDebug() << "图片数据库载入文件"<<imageNameFile<<"打开失败!";
-        return false;
-    }
-
-    QTextStream in(&file);
-    QString line;
-    in.readLine(); in.readLine();//舍弃前两行
-    while(!in.atEnd() && n>0){
-        line = in.readLine();
-        n--;
-    }
-    if(n==0){
-        imageName = line;
-        return true;
-    }else{
-        qDebug() << imageNameFile<<"中不存在第"<<n<<"个图片";
-        return false;
-    }
-}
-
-bool readIdByName(int& id, QString imageName, QString imageNameFile){
-    QFile file(imageNameFile);
-    if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
-        qDebug() << "图片数据库载入文件"<<imageNameFile<<"打开失败!";
-        return false;
-    }
-
-    QTextStream in(&file);
-    QString line;
-    id = 0;
-    while(!in.atEnd())
-    {
-        line = in.readLine();
-        if(line.length()!=imageName)
-        {
-            id++;
-        }
-        else
-        {
-            return true;
-        }
-    }
-    qDebug() << imageNameFile<<"中不存在名为"<<imageName<<"的图片";
-    return false;
-}
-
-QString getLabel(QString imageName){
-    QStringList list = imageName.split('_');
-    return list[0];
 }
 
 double distance(double p1[], double p2[]){

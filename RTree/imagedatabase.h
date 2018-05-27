@@ -10,7 +10,6 @@ class ImageDatabase//图片数据库类
 public:
     ImageDatabase();
     bool init(QString databaseFile);//根据databaseFile中的内容进行数据库的初始化
-    //void rangeQueryFromFile(QString queryFile,QString resultFile);//从queryFile中读取查询，将结果写到resultFile中
     QVector<int> rangeQuery(double a_min[], double a_max[], int& visitedNodesNumber);//范围查询
     QVector<int> rangeQuery(double a_min[], double a_max[]);//范围查询
     QVector<int> exactQuery(double a_point[]);//精确查询
@@ -18,14 +17,12 @@ public:
     double knnAccuracy(double p[], int k, QString label);//knn查询的准确度计算，label是对应的标签
     int getSplitNodesCount()const{return m_rtree.m_splitNodesCount;}//返回结点分裂总次数
     double distance(double p1[], double p2[]){return m_rtree.distance(p1,p2);}
+    QString getLabel(int id){return m_imageLabel[id];}//返回id对应的图片名
 private:
     RTree_ m_rtree;
     QVector<int> m_queryResult;//存储查询结果
+    QVector<QString> m_imageLabel;//存储标签
 };
 
-bool readNthFeature(int n, double feature[], QString databaseFile);//读入第n行的特征向量feature（用于调试）
-bool readNthImageName(int n, QString& imageName, QString imageNameFile);//读入第n行的图片名
-bool readIdByName(int& id, QString imageName, QString imageNameFile);//根据图片名得到ID
 double distance(double p1[], double p2[]);//两个点之间的距离
-QString getLabel(QString imageName);//由一张图片的名字返回其所对应的类别
 #endif // IMAGEDATABASE_H
