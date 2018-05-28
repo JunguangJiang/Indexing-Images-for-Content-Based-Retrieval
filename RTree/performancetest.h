@@ -7,5 +7,6 @@ void RTreeSplitNodesCountTest();//R数进行插入时的结点分裂次数性能
 
 void RTreeDistanceTypeTest(int k=10);//R树选择不同的距离函数的性能测试
 
+void FeatureDistractMethodTest(int k=10);//特征提取方法测试
 
 #endif // PERFORMANCETEST_H

@@ -98,3 +98,40 @@ void RTreeDistanceTypeTest(int k){
     out << DistanceType << "," << k << "," << averageScore << endl;
     resultFile.close();
 }
+
+void FeatureDistractMethodTest(int k){
+        ImageDatabase m_database;
+        if(!m_database.init(ImageDatabaseFile))return;//初始化数据库
+        double averageScore = 0.0;
+
+        double p[Dimension];
+        QFile file(FeatureDistractQueryFile);
+        if(!file.open(QIODevice::ReadOnly|QIODevice::Text)){
+            qDebug() << "实验内容2：knn查询文件"<<FeatureDistractQueryFile<<"打开失败!";
+            return;
+        }
+        QTextStream in(&file);
+        in.readLine(); in.readLine();//舍弃前两行
+        int n=0;
+        while(!in.atEnd()){
+            QString line = in.readLine();
+            QStringList list = line.split(' ');
+            assert(list.size() == Dimension+1);
+            for(int i=0; i<Dimension; i++){
+                p[i] = list[i].toDouble();
+            }
+            averageScore += m_database.knnAccuracy(p, k, list[Dimension]);
+            n++;
+        }
+        file.close();
+        averageScore /= double(n);
+
+        QFile resultFile(FeatureDistractResultFile);
+        if(!resultFile.open(QIODevice::WriteOnly|QIODevice::Text|QIODevice::Append)){
+            qDebug() << "实验内容2：不同特征提取方法对查询准确度影响的结果文件" << FeatureDistractResultFile<<"打开失败!";
+            return;
+        }
+        QTextStream out(&resultFile);
+        out << ImageDatabaseFile << "," << averageScore << endl;
+        resultFile.close();
+}

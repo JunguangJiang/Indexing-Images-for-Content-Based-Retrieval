@@ -3,9 +3,10 @@
 #include "performancetest.h"
 int main(int argc, char *argv[])
 {
-    RTreeDiskAccessTest();
-//    RTreeSplitNodesCountTest();
-//    RTreeDistanceTypeTest(5);
+    //RTreeDiskAccessTest();
+    //RTreeSplitNodesCountTest();
+//    RTreeDistanceTypeTest(10);
+//    FeatureDistractMethodTest();
 //    return 0;
     QApplication a(argc, argv);
     MainWindow w;
